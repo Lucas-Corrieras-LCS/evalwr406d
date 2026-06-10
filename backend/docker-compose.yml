@@ -1,0 +1,49 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: evalwr406d_php
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - database
+    environment:
+      DATABASE_URL: "mysql://app:app@database:3306/evalwr406d?serverVersion=8.0&charset=utf8mb4"
+    networks:
+      - evalwr406d
+
+  nginx:
+    image: nginx:alpine
+    container_name: evalwr406d_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - evalwr406d
+
+  database:
+    image: mysql:8.0
+    container_name: evalwr406d_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: evalwr406d
+      MYSQL_USER: app
+      MYSQL_PASSWORD: app
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - evalwr406d
+
+networks:
+  evalwr406d:
+    driver: bridge
+
+volumes:
+  db_data:
